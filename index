@@ -1,0 +1,4 @@
+allowAccess /krbUtils/allowAccess
+createUser /krbUtils/createUser
+doorServer /krb/kerberos-server
+registerUser /krbUtils/registerUser
