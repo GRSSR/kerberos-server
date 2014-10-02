@@ -1,6 +1,6 @@
 -- protocol action door other
-os.loadAPI("redString")
-os.loadAPI("secAPI")
+os.loadAPI("api/redString")
+os.loadAPI("api/sec")
 local modem = peripheral.wrap("bottom")
 
 protocolChannel = 1

@@ -2,3 +2,7 @@ allowAccess allowAccess.lua /krbUtils/allowAccess
 createUser createUser.lua /krbUtils/createUser
 kerberos-Server doorServer.lua /krb/kerberos-server
 registerUser registerUser.lua /krbUtils/registerUser
+
+# dependancies
+api:redString
+api:sec
