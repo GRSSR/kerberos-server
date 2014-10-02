@@ -1,50 +1,33 @@
-os.loadAPI("redString")
+os.loadAPI("api/redString")
+os.loadAPI("api/sovietProtocol")
 
-drive = "left"
+local drive = "left"
+local PROTOCOL_CHANNEL = 1
 
-function parseProtocol(message)
-	local split = redString.split(message)
-	ret = {}
-	ret["action"] = split[1]
-	ret["id"] = tonumber(split[2])
-	ret["body"] = split[3]
-	return ret
-end
+sovietProtocol.init(PROTOCOL_CHANNEL, os.getComputerID())
 
-protocolChannel = 1
-
-terminalID = tonumber(os.getComputerID())
-
-local modem = peripheral.wrap("right")
-modem.open(terminalID)
-
-args = {...}
+local args = {...}
 
 if not disk.isPresent(drive) then
 	error("no disk present")
 end
 
-userName = args[1]
+local userName = args[1]
 
 if not userName then
 	error("usage: createUser [userName]")
 end
 
-modem.transmit(protocolChannel, terminalID, "create_user "..userName)
+sovietProtocol.send(PROTOCOL_CHANNEL, os.getComputerID(), "create_user", userName)
 
-local event, modemSide, senderChannel, replyChannel,
-		message, senderDistance = os.pullEvent("modem_message")
+local replyChannel, response = sovietProtocol.listen()
 
-print(message)
-
-response = parseProtocol(message)
-
-if response.action == "error" then
+if response.method == "error" then
 	error(response.body)
 end
 
-diskRoot = disk.getMountPath(drive)
-idFile = fs.combine(diskRoot, "ID")
+local diskRoot = disk.getMountPath(drive)
+local idFile = fs.combine(diskRoot, "ID")
 
 f = io.open(idFile, "w")
 f:write(response.body)

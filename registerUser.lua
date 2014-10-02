@@ -1,32 +1,21 @@
-os.loadAPI("redString")
-os.loadAPI("secAPI")
-drive = "left"
+os.loadAPI("api/redString")
+os.loadAPI("api/sec")
+os.loadAPI("api/sovietProtocol")
 
-function parseProtocol(message)
-	local split = redString.split(message)
-	ret = {}
-	ret["action"] = split[1]
-	ret["id"] = tonumber(split[2])
-	ret["body"] = split[3]
-	return ret
-end
+local drive = "left"
+local PROTOCOL_CHANNEL = 1
 
-protocolChannel = 1
+sovietProtocol.init(PROTOCOL_CHANNEL, os.getComputerID())
 
+args = {...}
+doorID = tonumber(args[1])
 terminalID = tonumber(os.getComputerID())
 
-local modem = peripheral.wrap("right")
-modem.open(terminalID)
+userName, token = sec.readIDDisk()
 
-userName, token = secAPI.readIDDisk()
+sovietProtocol.send(PROTOCOL_CHANNEL, os.getComputerID(), "register_user", userName, token)
 
-modem.transmit(protocolChannel, terminalID, "register_user "..userName.." "..token)
-
-local event, modemSide, senderChannel, replyChannel,
-		message, senderDistance = os.pullEvent("modem_message")
-
-
-response = parseProtocol(message)
+local replyChannel, response = sovietProtocol.listen()
 
 if response.action == "error" then
 	error(response.body)

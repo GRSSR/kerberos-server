@@ -1,25 +1,17 @@
 -- protocol action door other
 os.loadAPI("api/redString")
 os.loadAPI("api/sec")
-local modem = peripheral.wrap("bottom")
+os.loadAPI("api/sovietProtocol")
 
-protocolChannel = 1
+local drive = "left"
+local PROTOCOL_CHANNEL = 1
 
-modem.open(protocolChannel)
-
-secAPI.loadUsers("/database/users")
-
-function parseProtocol(message)
-	local split = redString.split(message)
-	ret = {}
-	ret["action"] = split[1]
-	ret["id"] = split[2]
-	ret["body"] = split[3]
-	return ret
-end
+sovietProtocol.init(PROTOCOL_CHANNEL, PROTOCOL_CHANNEL)
+sovietProtocol.setDebugLevel(9)
+sec.loadUsers("/database/users")
 
 function checkDoorAccess(doorID, user)
-	accessList = secAPI.loadAccessList(fs.combine("database", doorID))
+	accessList = sec.loadAccessList(fs.combine("database", doorID))
 	if accessList[user] == true then
 		return true
 	end
@@ -27,39 +19,35 @@ function checkDoorAccess(doorID, user)
 end
 
 function can_open(origin, doorID, userToken)
-	user = secAPI.mapUser(userToken)
-	if user then
-		if checkDoorAccess(doorID, user) then
-			modem.transmit(origin, protocolChannel, "door_open "..doorID.." true")
-			print("sent door_open "..doorID.." true")
-		else
-			modem.transmit(origin, protocolChannel, "door_open "..doorID.." false")
-		end
+	user = sec.mapUser(userToken)
+	if user and checkDoorAccess(doorID, user)then
+		sovietProtocol.send(origin, PROTOCOL_CHANNEL, "door_open", doorID, "true")
+		print("sent door_open "..doorID.." true")
 	else
-		modem.transmit(origin, protocolChannel, "door_open "..doorID.." false")
+		sovietProtocol.send(origin, PROTOCOL_CHANNEL, "door_open", doorID, "false")
 	end
 end
 
 function create_user(origin, userName, none)
-	userToken = secAPI.generateKey(50)
-	secAPI.addUser(userName, userToken)
-	secAPI.saveUsers("/database/users")
+	userToken = sec.generateKey(50)
+	sec.addUser(userName, userToken)
+	sec.saveUsers("/database/users")
 	print("sending: ".."user_key "..userName.." "..userToken)
-	modem.transmit(origin, protocolChannel, "user_key "..userName.." "..userToken)
+	sovietProtocol.send(origin, PROTOCOL_CHANNEL, "user_key", userName, userToken)
 end
 
 function register_user(origin, userName, userToken)
-	secAPI.addUser(userName, userToken)
-	secAPI.saveUsers("/database/users")
-	modem.transmit(origin, protocolChannel, "user_key "..userName.." "..userToken)
+	sec.addUser(userName, userToken)
+	sec.saveUsers("/database/users")
+	sovietProtocol.send(origin, PROTOCOL_CHANNEL, "user_key", userName, userToken)
 end
 
 function allow_access(origin, doorID, userToken)
-	userName = secAPI.mapUser(userToken)
-	accessList = secAPI.loadAccessList(fs.combine("database", doorID))
+	userName = sec.mapUser(userToken)
+	accessList = sec.loadAccessList(fs.combine("database", doorID))
 	accessList[userName] = true
-	secAPI.saveAccessList(fs.combine("database", doorID), accessList)
-	modem.transmit(origin, protocolChannel, "access_granted "..userName.." "..doorID)
+	sec.saveAccessList(fs.combine("database", doorID), accessList)
+	sovietProtocol.send(origin, PROTOCOL_CHANNEL, "access_granted", userName, doorID)
 end
 
 function register_door(origin, doorID, none)
@@ -73,11 +61,11 @@ methods = {
 }
 
 function handleRequest(origin, request)
-	if request.action and request.id then
-		if methods[request.action] then
-			methods[request.action](origin, request.id, request.body)
+	if request.method and request.id then
+		if methods[request.method] then
+			methods[request.method](origin, request.id, request.body)
 		else
-			print("invalid method "..request.action)
+			print("invalid method "..request.method)
 			return false
 		end
 	else
@@ -91,11 +79,9 @@ end
 print("Starting DoorSecServer")
 
 while true do
-	local event, modemSide, senderChannel, replyChannel,
-		message, senderDistance = os.pullEvent("modem_message")
-		print("recieved request:"..message)
-		if not handleRequest(replyChannel, parseProtocol(message)) then
-			modem.transmit(replyChannel, 1, "error")
-		end
+	local replyChannel, response = sovietProtocol.listen()
+	if not handleRequest(replyChannel, response) then
+		sovietProtocol.send(replyChannel, PROTOCOL_CHANNEL, "error")
+	end
 
 end
