@@ -1,10 +1,10 @@
 os.loadAPI("api/redString")
 os.loadAPI("api/sovietProtocol")
 
-local drive = "left"
+local drive = "right"
 local PROTOCOL_CHANNEL = 1
 
-sovietProtocol.init(PROTOCOL_CHANNEL, os.getComputerID())
+local krb = sovietProtocol.Protocol:new("kerberos", PROTOCOL_CHANNEL, os.getComputerID(), "left")
 
 local args = {...}
 
@@ -18,9 +18,9 @@ if not userName then
 	error("usage: createUser [userName]")
 end
 
-sovietProtocol.send(PROTOCOL_CHANNEL, os.getComputerID(), "create_user", userName)
+krb:send("create_user", userName)
 
-local replyChannel, response = sovietProtocol.listen()
+local replyChannel, response = krb:listen()
 
 if response.method == "error" then
 	error(response.body)

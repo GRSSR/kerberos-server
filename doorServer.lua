@@ -6,7 +6,7 @@ os.loadAPI("api/sovietProtocol")
 local drive = "left"
 local PROTOCOL_CHANNEL = 1
 
-sovietProtocol.init(PROTOCOL_CHANNEL, PROTOCOL_CHANNEL)
+local krb = sovietProtocol.Protocol:new("kerberos", PROTOCOL_CHANNEL, PROTOCOL_CHANNEL, "back")
 sovietProtocol.setDebugLevel(9)
 sec.loadUsers("/database/users")
 
@@ -21,10 +21,10 @@ end
 function can_open(origin, doorID, userToken)
 	user = sec.mapUser(userToken)
 	if user and checkDoorAccess(doorID, user)then
-		sovietProtocol.send(origin, PROTOCOL_CHANNEL, "door_open", doorID, "true")
+		krb:send("door_open", doorID, "true", origin)
 		print("sent door_open "..doorID.." true")
 	else
-		sovietProtocol.send(origin, PROTOCOL_CHANNEL, "door_open", doorID, "false")
+		krb:send("door_open", doorID, "false", origin)
 	end
 end
 
@@ -33,13 +33,13 @@ function create_user(origin, userName, none)
 	sec.addUser(userName, userToken)
 	sec.saveUsers("/database/users")
 	print("sending: ".."user_key "..userName.." "..userToken)
-	sovietProtocol.send(origin, PROTOCOL_CHANNEL, "user_key", userName, userToken)
+	krb:send("user_key", userName, userToken, origin)
 end
 
 function register_user(origin, userName, userToken)
 	sec.addUser(userName, userToken)
 	sec.saveUsers("/database/users")
-	sovietProtocol.send(origin, PROTOCOL_CHANNEL, "user_key", userName, userToken)
+	krb:send("user_key", userName, userToken, origin)
 end
 
 function allow_access(origin, doorID, userToken)
@@ -47,7 +47,7 @@ function allow_access(origin, doorID, userToken)
 	accessList = sec.loadAccessList(fs.combine("database", doorID))
 	accessList[userName] = true
 	sec.saveAccessList(fs.combine("database", doorID), accessList)
-	sovietProtocol.send(origin, PROTOCOL_CHANNEL, "access_granted", userName, doorID)
+	krb:send("access_granted", userName, doorID, origin)
 end
 
 function register_door(origin, doorID, none)
@@ -79,9 +79,8 @@ end
 print("Starting DoorSecServer")
 
 while true do
-	local replyChannel, response = sovietProtocol.listen()
+	local replyChannel, response = krb:listen()
 	if not handleRequest(replyChannel, response) then
-		sovietProtocol.send(replyChannel, PROTOCOL_CHANNEL, "error")
+		krb:send("error", nil, nil, replyChannel)
 	end
-
 end
