@@ -2,10 +2,10 @@ os.loadAPI("api/redString")
 os.loadAPI("api/sec")
 os.loadAPI("api/sovietProtocol")
 
-local drive = "right"
+local drive = "left"
 local PROTOCOL_CHANNEL = 1
 
-local krb = sovietProtocol.Protocol:new("kerberos", PROTOCOL_CHANNEL, os.getComputerID(), "left")
+local krb = sovietProtocol.Protocol:new("kerberos", PROTOCOL_CHANNEL, os.getComputerID())
 
 args = {...}
 doorID = tonumber(args[1])
