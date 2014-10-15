@@ -1,8 +1,8 @@
-allowAccess allowAccess.lua /krbUtils/allowAccess
-createUser createUser.lua /krbUtils/createUser
-kerberos-Server doorServer.lua /krb/kerberos-server
-registerUser registerUser.lua /krbUtils/registerUser
-restartNetwork restart.lua /krbUtils/restart
+allowAccess allowAccess.lua /laikaUtils/allowAccess
+createUser createUser.lua /laikaUtils/createUser
+laika-Server doorServer.lua /laika/laika-server
+registerUser registerUser.lua /laikaUtils/registerUser
+restartNetwork restart.lua /laikaUtils/restart
 
 # dependancies
 api:redString

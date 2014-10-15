@@ -6,7 +6,7 @@ os.loadAPI("api/sovietProtocol")
 local drive = "left"
 local PROTOCOL_CHANNEL = 1
 
-local krb = sovietProtocol.Protocol:new("kerberos", PROTOCOL_CHANNEL, PROTOCOL_CHANNEL, "back")
+local laika = sovietProtocol.Protocol:new("laika", PROTOCOL_CHANNEL, PROTOCOL_CHANNEL, "back")
 sovietProtocol.setDebugLevel(9)
 sec.loadUsers("/database/users")
 
@@ -21,10 +21,10 @@ end
 function can_open(origin, doorID, userToken)
 	user = sec.mapUser(userToken)
 	if user and checkDoorAccess(doorID, user)then
-		krb:send("door_open", doorID, "true", origin)
+		laika:send("door_open", doorID, "true", origin)
 		print("sent door_open "..doorID.." true")
 	else
-		krb:send("door_open", doorID, "false", origin)
+		laika:send("door_open", doorID, "false", origin)
 	end
 end
 
@@ -33,13 +33,13 @@ function create_user(origin, userName, none)
 	sec.addUser(userName, userToken)
 	sec.saveUsers("/database/users")
 	print("sending: ".."user_key "..userName.." "..userToken)
-	krb:send("user_key", userName, userToken, origin)
+	laika:send("user_key", userName, userToken, origin)
 end
 
 function register_user(origin, userName, userToken)
 	sec.addUser(userName, userToken)
 	sec.saveUsers("/database/users")
-	krb:send("user_key", userName, userToken, origin)
+	laika:send("user_key", userName, userToken, origin)
 end
 
 function allow_access(origin, doorID, userToken)
@@ -47,7 +47,7 @@ function allow_access(origin, doorID, userToken)
 	accessList = sec.loadAccessList(fs.combine("database", doorID))
 	accessList[userName] = true
 	sec.saveAccessList(fs.combine("database", doorID), accessList)
-	krb:send("access_granted", userName, doorID, origin)
+	laika:send("access_granted", userName, doorID, origin)
 end
 
 function register_door(origin, doorID, none)
@@ -79,8 +79,8 @@ end
 print("Starting DoorSecServer")
 
 while true do
-	local replyChannel, response = krb:listen()
+	local replyChannel, response = laika:listen()
 	if not handleRequest(replyChannel, response) then
-		krb:send("error", nil, nil, replyChannel)
+		laika:send("error", nil, nil, replyChannel)
 	end
 end
