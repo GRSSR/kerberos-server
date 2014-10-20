@@ -8,7 +8,7 @@ local PROTOCOL_CHANNEL = 1
 local laika = sovietProtocol.Protocol:new("laika", PROTOCOL_CHANNEL, os.getComputerID())
 
 args = {...}
-doorID = tonumber(args[1])
+doorID = args[1]
 terminalID = tonumber(os.getComputerID())
 
 userName, token = sec.readIDDisk()

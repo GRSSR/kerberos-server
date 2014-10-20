@@ -7,3 +7,4 @@ restartNetwork restart.lua /laikaUtils/restart
 # dependancies
 api:redString
 api:sec
+api:sovietProtocol
